@@ -1,0 +1,10 @@
+### GET request to example server
+POST http://localhost:8001/auth/api/v1/signin
+Content-Type: application/json
+
+{
+  "email": "abhijit@gmail.com",
+  "password": "abhijit07"
+}
+
+###

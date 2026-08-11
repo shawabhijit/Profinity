@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="profinity-auth-service-db@localhost" uuid="5223e336-acfd-4fb3-9ed4-b7adfec75e8b">
+    <data-source source="LOCAL" name="profinity-auth-service-db" uuid="085a9757-de71-4fd6-aec7-03ecf2893dbc">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/profinity-auth-service-db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5050/db</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
