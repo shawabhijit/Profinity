@@ -87,9 +87,6 @@ public class AuthService {
         if(refreshToken == null) {
             throw new BadCredentialsException("Refresh token is null");
         }
-        if(!validateToken(refreshToken)) {
-            throw new BadCredentialsException("Refresh token is invalid");
-        }
 
         Claims claims = jwtUtil.extractClaims(refreshToken);
 
@@ -103,16 +100,6 @@ public class AuthService {
         saveToCookie(newRefreshToken, response);
 
         return new LoginResponse(newToken, "success");
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            jwtUtil.validateToken(token);
-            return true;
-        }
-        catch (Exception e) {
-            return false;
-        }
     }
 
 

@@ -48,17 +48,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    public void validateToken(String token) {
-        try {
-            Jwts.parser().verifyWith((SecretKey) secretKey)
-                    .build()
-                    .parseSignedClaims(token);
-        }
-        catch (JwtException e) {
-            throw new JwtException("Invalid JWT token");
-        }
-    }
-
     public Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) secretKey)

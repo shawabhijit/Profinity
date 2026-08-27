@@ -36,20 +36,6 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.login(loginRequest, response));
     }
 
-    @Operation(summary = "Validate token")
-    @GetMapping("/validate")
-    public ResponseEntity<String> validateToken(
-            @RequestHeader("Authorization") String authHeader
-    ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        return authService.validateToken(authHeader.substring(7))
-                ? ResponseEntity.ok().body("Auth Validation Success.")
-                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
