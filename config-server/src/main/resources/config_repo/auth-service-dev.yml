@@ -2,6 +2,16 @@ spring:
   application:
     name: auth-service
 
+  kafka:
+    bootstrap-servers: kafka:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      properties:
+        spring.json.add.type.headers: false
+
   datasource:
     url: jdbc:postgresql://profinity-auth-service-db:5432/db
     username: admin
@@ -25,3 +35,4 @@ server:
 
 jwt:
   secret-key: "jndkjnDKNknkdnsk94789jskanNDd3unksndf89ruProfinitysndfkjFsdjnfkDJNFJNkdqw9r"
+

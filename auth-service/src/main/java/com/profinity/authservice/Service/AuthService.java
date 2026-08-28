@@ -4,6 +4,7 @@ import com.profinity.authservice.Config.JwtUtil;
 import com.profinity.authservice.Entity.User;
 import com.profinity.authservice.Entity.enums.AuthProvider;
 import com.profinity.authservice.Repository.UserRepository;
+import com.profinity.authservice.event.UserEventProducer;
 import com.profinity.authservice.exchange.CreateRequest;
 import com.profinity.authservice.exchange.LoginRequest;
 import com.profinity.authservice.exchange.LoginResponse;
@@ -32,6 +33,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserEventProducer userEventProducer;
 
     public SignupResponse signUp(CreateRequest request , HttpServletResponse response) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
@@ -56,6 +58,10 @@ public class AuthService {
         log.info("Token generated: {}", token);
 
         saveToCookie(refreshToken, response);
+
+        // sent kafka event producer
+        // consumes by user-service
+        userEventProducer.sendUserCreatedEvent(user);
 
         return SignupResponse.builder()
                 .email(user.getEmail())
