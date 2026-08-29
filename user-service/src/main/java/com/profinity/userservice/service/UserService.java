@@ -35,7 +35,15 @@ public class UserService {
     }
 
     public UserResponse getUserProfile(UUID userId, UUID targetUserId) {
-        return null;
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new IllegalArgumentException("User not found with this id: " + userId)
+        );
+
+        User targetUser = userRepository.findById(targetUserId).orElseThrow(
+                () -> new IllegalArgumentException("User not found with this id: " + targetUserId)
+        );
+
+        return userToUserResponse(targetUser);
     }
 
     public void createUser(UserCreatedEvent userCreatedEvent) {
@@ -50,35 +58,41 @@ public class UserService {
                 .createdAt(userCreatedEvent.createdAt())
                 .build();
 
+        // public user created event
+        // this event should consume by search service
+        userEventProducer.sendUserCreatedEvent(user);
+        log.info("user created event published: {}" , user.getId());
+
         userRepository.save(user);
     }
 
     public UserResponse updateUserInfo(UUID userId, UpdateUserRequest userRequest) {
-        User user = userRepository.findById(userId).orElseThrow(
+        User existingUser = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException("User not found with this id: " + userId)
         );
 
-        user = User.builder()
-                .username(userRequest.getUsername())
-                .headline(userRequest.getHeadline())
-                .about(userRequest.getAbout())
-                .profileUrl(userRequest.getProfileUrl())
-                .coverUrl(userRequest.getCoverUrl())
-                .skills(userRequest.getSkills())
-                .build();
+        // Update mutable fields
+        existingUser.setUsername(userRequest.getUsername());
+        existingUser.setHeadline(userRequest.getHeadline());
+        existingUser.setAbout(userRequest.getAbout());
+        existingUser.setProfileUrl(userRequest.getProfileUrl());
+        existingUser.setCoverUrl(userRequest.getCoverUrl());
+        existingUser.setSkills(userRequest.getSkills());
 
-        user = userRepository.save(user);
+        // Save updated user
+        existingUser = userRepository.save(existingUser);
 
         // public user updated event
         // this event should consume by search service
-        userEventProducer.sendUserUpdatedEvent(user);
-        log.info("user updated event published: {}" , user.getId());
+        userEventProducer.sendUserUpdatedEvent(existingUser);
+        log.info("user updated event published: {}" , existingUser.getId());
 
-        return userToUserResponse(user);
+        return userToUserResponse(existingUser);
     }
 
     public String deleteUser(UUID userId) {
-        return null;
+        userRepository.deleteById(userId);
+        return "User deleted successfully.";
     }
 
     public static UserResponse userToUserResponse(User user) {

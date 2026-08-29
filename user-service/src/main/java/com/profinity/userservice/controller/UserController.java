@@ -40,7 +40,12 @@ public class UserController {
     @PutMapping("/update/{userId}")
     public ResponseEntity<UserResponse> updateUserInfo(
             @PathVariable("userId") UUID userId,
+            @RequestHeader("userId") UUID requestingUserId,
             @RequestBody UpdateUserRequest userRequest) {
+
+        if (!userId.equals(requestingUserId)) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok().body(userService.updateUserInfo(userId, userRequest));
     }
 
