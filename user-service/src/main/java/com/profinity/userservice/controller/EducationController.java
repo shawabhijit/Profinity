@@ -5,17 +5,23 @@ import com.profinity.userservice.dto.EducationResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/education")
+@RequestMapping("/api/v1/educations")
 public class EducationController {
 
     @GetMapping("/{educationId}")
-    public ResponseEntity<EducationResponse> getUserEducation(
+    public ResponseEntity<EducationResponse> getUserEducationByEducationId(
             @PathVariable UUID educationId,
             @RequestHeader UUID userId
     ) {
+        return ResponseEntity.ok().body(null);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EducationResponse>> getUserAllEducations(@RequestHeader UUID userId) {
         return ResponseEntity.ok().body(null);
     }
 
@@ -41,5 +47,4 @@ public class EducationController {
     ) {
         return ResponseEntity.ok().body(null);
     }
-
 }

@@ -1,5 +1,6 @@
 package com.profinity.userservice.dto;
 
+import com.profinity.userservice.entity.Education;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,9 @@ import java.util.List;
 public class UpdateUserRequest {
     @NotNull( message = "Username cannot be null")
     private String username;
+    @NotNull( message = "Username cannot be null")
     private String headline;
+    @NotNull( message = "Username cannot be null")
     private String about;
     private String location;
     private String profileUrl;

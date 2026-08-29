@@ -1,5 +1,6 @@
 package com.profinity.userservice.controller;
 
+import com.profinity.userservice.dto.ConnectionResponse;
 import com.profinity.userservice.dto.UserResponse;
 import com.profinity.userservice.service.ConnectionService;
 import lombok.RequiredArgsConstructor;
@@ -17,26 +18,26 @@ public class ConnectionController {
     private final ConnectionService connectionService;
 
     @PostMapping("/{userId}")
-    public ResponseEntity<?> sendConnectionRequest(
+    public ResponseEntity<ConnectionResponse> sendConnectionRequest(
             @PathVariable UUID userId,
             @RequestHeader UUID targetUserId) {
         return ResponseEntity.ok().body(connectionService.sendConnectionRequest(userId, targetUserId));
     }
 
-    @PutMapping("/accept-request/{userId}")
-    public ResponseEntity<?> acceptConnectionRequest(
-            @PathVariable UUID userId,
-            @RequestHeader UUID targetUserId
+    @PutMapping("/accept-request/{connectionId}")
+    public ResponseEntity<ConnectionResponse> acceptConnectionRequest(
+            @PathVariable UUID connectionId,
+            @RequestHeader UUID requestingUserId
     ) {
-        return ResponseEntity.ok().body(connectionService.acceptConnectionRequest(userId, targetUserId));
+        return ResponseEntity.ok().body(connectionService.acceptConnectionRequest(connectionId));
     }
 
-    @PutMapping("/reject-request/{userId}")
-    public ResponseEntity<?> rejectConnectionRequest(
-            @PathVariable UUID userId,
+    @PutMapping("/reject-request/{connectionId}")
+    public ResponseEntity<ConnectionResponse> rejectConnectionRequest(
+            @PathVariable UUID connectionId,
             @RequestHeader UUID targetUserId
     ) {
-        return ResponseEntity.ok().body(connectionService.rejectConnectionRequest(userId, targetUserId));
+        return ResponseEntity.ok().body(connectionService.rejectConnectionRequest(connectionId));
     }
 
     @GetMapping("{userId}")
