@@ -23,7 +23,7 @@ public class UserEventProducer {
         );
         try {
             kafkaTemplate.send(
-                    "user.created",
+                    "authuser.created",
                     userCreatedEvent
             );
             log.info("User created event sent: {}", userCreatedEvent);

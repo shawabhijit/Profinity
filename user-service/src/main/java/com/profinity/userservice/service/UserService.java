@@ -58,12 +58,12 @@ public class UserService {
                 .createdAt(userCreatedEvent.createdAt())
                 .build();
 
+        user = userRepository.save(user);
+
         // public user created event
         // this event should consume by search service
         userEventProducer.sendUserCreatedEvent(user);
         log.info("user created event published: {}" , user.getId());
-
-        userRepository.save(user);
     }
 
     public UserResponse updateUserInfo(UUID userId, UpdateUserRequest userRequest) {

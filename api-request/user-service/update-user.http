@@ -1,0 +1,16 @@
+### Update request to user-service to update user information
+PUT http://localhost:8002/api/v1/users/update/509e4195-1feb-4c70-8307-868148463401
+content-type: application/json
+requestingUserId: 509e4195-1feb-4c70-8307-868148463401
+
+{
+  "username" : "",
+  "headline": "",
+  "about": "",
+  "location": "",
+  "profileUrl": "",
+  "coverUrl": "",
+  "skills": []
+}
+
+###

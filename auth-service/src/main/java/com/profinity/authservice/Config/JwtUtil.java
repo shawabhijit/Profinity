@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
 
@@ -34,7 +35,7 @@ public class JwtUtil {
                 .subject(user.getEmail())
                 .claim("userId",user.getId().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
+                .expiration(new Date(System.currentTimeMillis() + Duration.ofMinutes(5).toMillis()))
                 .signWith(getSecretKey())
                 .compact();
     }
@@ -44,7 +45,7 @@ public class JwtUtil {
                 .subject(user.getEmail())
                 .claim("userId",user.getId().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+                .expiration(new Date(System.currentTimeMillis() + Duration.ofMinutes(30).toMillis()))
                 .signWith(getSecretKey())
                 .compact();
     }

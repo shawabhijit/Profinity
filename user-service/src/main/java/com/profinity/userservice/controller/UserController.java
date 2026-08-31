@@ -25,7 +25,8 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
+    public ResponseEntity<UserResponse> getUserById(
+            @PathVariable UUID userId) {
         return ResponseEntity.ok().body(userService.getUserById(userId));
     }
 
@@ -39,8 +40,8 @@ public class UserController {
 
     @PutMapping("/update/{userId}")
     public ResponseEntity<UserResponse> updateUserInfo(
-            @PathVariable("userId") UUID userId,
-            @RequestHeader("userId") UUID requestingUserId,
+            @PathVariable UUID userId,
+            @RequestHeader UUID requestingUserId,
             @RequestBody UpdateUserRequest userRequest) {
 
         if (!userId.equals(requestingUserId)) {

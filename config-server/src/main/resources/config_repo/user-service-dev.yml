@@ -10,7 +10,16 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
       properties:
-        spring.json.add.type.headers: false
+        spring.json.type.mapping: userUpdate:com.profinity.userservice.event.UserEventRecord,connectionEvent:com.profinity.userservice.event.ConnectionRecord
+
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.type.mapping: userCreated:com.profinity.userservice.event.UserCreatedEvent #,postCreated:com.profinity.userservice.event.PostCreatedEvent
+        spring.json.trusted.packages: com.profinity.userservice.event
 
 
   datasource:

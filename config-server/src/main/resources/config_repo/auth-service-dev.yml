@@ -10,7 +10,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
       properties:
-        spring.json.add.type.headers: false
+        spring.json.type.mapping: userCreated:com.profinity.authservice.event.UserCreatedEvent
 
   datasource:
     url: jdbc:postgresql://profinity-auth-service-db:5432/db

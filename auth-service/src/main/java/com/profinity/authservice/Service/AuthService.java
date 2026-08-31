@@ -64,6 +64,7 @@ public class AuthService {
         userEventProducer.sendUserCreatedEvent(user);
 
         return SignupResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .userName(user.getUsername())
                 .token(token)
@@ -108,7 +109,20 @@ public class AuthService {
         return new LoginResponse(newToken, "success");
     }
 
-
+    public String signOut(String refreshToken , HttpServletResponse response) {
+        if(refreshToken != null) {
+            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("Strict") // or "Lax"/"None" depending on your frontend
+                    .path("/auth/refresh")
+                    .maxAge(0)
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            return "success";
+        }
+        return "failure";
+    }
 
     private void saveToCookie(String refreshToken, HttpServletResponse response) {
         log.info("Inside saveToCookie method");

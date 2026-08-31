@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
+import javax.swing.*;
 
 @RestController
 @RequestMapping("/auth/api/v1")
@@ -42,5 +43,10 @@ public class AuthController {
             HttpServletResponse response) {
 
         return ResponseEntity.ok(authService.refresh(refreshToken, response));
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout(String refreshToken,HttpServletResponse response) {
+        return ResponseEntity.ok().body(authService.signOut(refreshToken, response));
     }
 }

@@ -14,7 +14,7 @@ public class UserEventConsumer {
 
     private final UserService userService;
 
-    @KafkaListener(topics = "user.created" , groupId = "user-service")
+    @KafkaListener(topics = "authuser.created" , groupId = "user-service")
     public void consumeUserCreatedEvent(UserCreatedEvent userCreatedEvent) {
         log.info("Received user created event: {}", userCreatedEvent);
         userService.createUser(userCreatedEvent);
