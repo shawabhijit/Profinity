@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Profinity.iml" filepath="$PROJECT_DIR$/.idea/Profinity.iml" />
+      <module fileurl="file://$PROJECT_DIR$/post-service/post-service.iml" filepath="$PROJECT_DIR$/post-service/post-service.iml" />
     </modules>
   </component>
 </project>
