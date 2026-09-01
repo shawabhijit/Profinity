@@ -38,7 +38,14 @@ public class Post {
 
     private long commentCount = 0;
 
+    private boolean likedByCurrentUser = false;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public void addAttachment(PostAttachment attachment) {
+        attachment.setPost(this);
+        attachments.add(attachment);
+    }
 }

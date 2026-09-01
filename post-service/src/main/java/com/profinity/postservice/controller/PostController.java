@@ -1,8 +1,7 @@
 package com.profinity.postservice.controller;
 
 import com.profinity.postservice.dto.CommentResponse;
-import com.profinity.postservice.dto.LikeResponse;
-import com.profinity.postservice.dto.PostRequest;
+import com.profinity.postservice.dto.PostAttachmentRequest;
 import com.profinity.postservice.dto.PostResponse;
 import com.profinity.postservice.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,11 +24,11 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponse> createPost(
             @RequestParam UUID authorId,
-            @RequestBody PostRequest postRequest,
-            @RequestParam(required = false) List<MultipartFile> files
+            @RequestBody String content,
+            @RequestParam(required = false) List<PostAttachmentRequest> fileRequests
             ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                postService.createPost(authorId, postRequest, files)
+                postService.createPost(authorId, content, fileRequests)
         );
     }
 
@@ -65,7 +63,7 @@ public class PostController {
      * start from here
      */
     @PostMapping("/{postId}/likes")
-    public ResponseEntity<LikeResponse> likePost(
+    public ResponseEntity<String> likePost(
             @PathVariable UUID postId,
             @RequestParam UUID userId
     ) {
@@ -94,5 +92,13 @@ public class PostController {
             @PathVariable UUID postId
     ) {
         return ResponseEntity.ok().body(postService.getComments(postId));
+    }
+
+    @DeleteMapping("/delete/{commentId}/comments")
+    public ResponseEntity<String> deleteComment(
+            @PathVariable UUID commentId,
+            @RequestParam UUID userId
+    ) {
+        return ResponseEntity.ok().body(postService.deleteComment(commentId, userId));
     }
 }
