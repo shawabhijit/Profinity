@@ -3,17 +3,21 @@ package com.profinity.postservice.service;
 import com.profinity.postservice.dto.CommentResponse;
 import com.profinity.postservice.dto.PostAttachmentRequest;
 import com.profinity.postservice.dto.PostResponse;
+import com.profinity.postservice.entity.Comment;
 import com.profinity.postservice.entity.Like;
 import com.profinity.postservice.entity.Post;
 import com.profinity.postservice.entity.PostAttachment;
 import com.profinity.postservice.exception.PostException;
-import com.profinity.postservice.kafka.PostEventProducer;
+import com.profinity.postservice.kafka.KafkaEventProducer;
 import com.profinity.postservice.repositoty.CommentRepository;
 import com.profinity.postservice.repositoty.LikeRepository;
 import com.profinity.postservice.repositoty.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,7 +35,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final S3Service s3Service;
 //    private final PostAttachmentRepository postAttachmentRepository;
-    private final PostEventProducer postEventProducer;
+    private final KafkaEventProducer kafkaEventProducer;
 
     /**
      * Create a Post
@@ -69,7 +73,7 @@ public class PostService {
         }
 
         // publish post.created event
-        postEventProducer.sentPostCreatedEvent(newPost);
+        kafkaEventProducer.sentPostCreatedEvent(newPost);
 
         return mapToPostResponse(post);
     }
@@ -97,13 +101,26 @@ public class PostService {
 
     /**
      * delete a specific post of an author
-     * should also delete attachments, likes and comments associated with this post
+     * should also delete attachments
+     * explicitly delete comments associated with this post by postId
      * @param postId
-     * @param userId
+     * @param authorId
      * @return "Post deleted successfully" with status code 200
      */
-    public String deletePost(UUID postId, UUID userId) {
-        return null;
+    @Transactional
+    public String deletePost(UUID postId, UUID authorId) {
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new PostException("Post not found with id: " + postId + ".")
+        );
+
+        if(!post.getAuthorId().equals(authorId)) {
+            throw new IllegalArgumentException("You are not authorized to delete this post.");
+        }
+        commentRepository.deleteByPostId(postId); // deletes all the comments which are having same postId
+        likeRepository.deleteByPostId(postId); // same as comment
+        postRepository.delete(post);
+
+        return "Post deleted successfully";
     }
 
     /**
@@ -134,6 +151,7 @@ public class PostService {
         post.setLikeCount(post.getLikeCount() + 1);
 
         // publish post.liked event
+        kafkaEventProducer.sentPostLikeEvent(postId, userId, post.getAuthorId());
 
         return "Post liked successfully";
     }
@@ -142,35 +160,68 @@ public class PostService {
      * Comment handlers starts from here
      * @param postId
      * @param userId
-     * @param comment
+     * @param content
      * @return CommentResponse
      */
-    public CommentResponse addComment(UUID postId, UUID userId, String comment) {
-        return null;
+    @Transactional
+    public CommentResponse addComment(UUID postId, UUID userId, String content) {
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new PostException("Post not found with id: " + postId + ".")
+        );
+        Comment comment = new Comment();
+        comment.setPostId(postId);
+        comment.setAuthorId(userId);
+        comment.setContent(content);
+        comment.setCreatedAt(LocalDateTime.now());
+
+        comment = commentRepository.save(comment);
+
+        post.setCommentCount(post.getCommentCount() + 1);
+
+        //publish post.commented kafka event
+        kafkaEventProducer.sentPostCommentEvent(
+                postId,
+                userId,
+                comment.getId(),
+                post.getAuthorId()
+        );
+
+        return new CommentResponse(comment.getId(), postId, content);
     }
 
-    public List<CommentResponse> getComments(UUID postId) {
-        return null;
+    public List<CommentResponse> getComments(UUID postId , LocalDateTime before) {
+        if(!postRepository.existsById(postId)) {
+            throw new PostException("Post not found with id: " + postId + ".");
+        }
+        /**
+         * here we are trying to fetch latest comments older then the last one i already have
+         */
+        Pageable pageable = PageRequest.of(0, 10,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        List<Comment> comments = (before == null)
+                ? commentRepository.findByPostId(postId , pageable)
+                : commentRepository.findByPostIdAndCreatedAt(postId, before, pageable);
+
+        return comments.stream().map(
+                comment ->  new CommentResponse(
+                        comment.getId(),
+                        comment.getPostId(),
+                        comment.getContent()
+                )
+        ).toList();
     }
 
     public String deleteComment(UUID commentId, UUID userId) {
-        return null;
+        Comment comment = commentRepository.findById(commentId).orElseThrow(
+                () -> new IllegalArgumentException("Comment not found with id: " + commentId + ".")
+        );
+        if (!comment.getAuthorId().equals(userId)) {
+            throw new IllegalArgumentException("You are not authorized to delete this comment.");
+        }
+        commentRepository.delete(comment);
+        return "Comment deleted successfully";
     }
-
-    public String deleteAllComments(UUID postId) {
-        return null;
-    }
-
-    /**
-     * PostAttachment Handler starts from here
-     * @param postId
-     * @param attachmentId
-     * @return String
-     */
-    public String deletePostAttachment(UUID postId, String attachmentId) {
-        return null;
-    }
-
 
     private PostResponse mapToPostResponse(Post post) {
         return PostResponse.builder()

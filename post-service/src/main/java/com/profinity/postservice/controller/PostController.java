@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,9 +90,10 @@ public class PostController {
 
     @GetMapping("/{postId}/comments")
     public ResponseEntity<List<CommentResponse>> getComments(
-            @PathVariable UUID postId
-    ) {
-        return ResponseEntity.ok().body(postService.getComments(postId));
+            @PathVariable UUID postId,
+            @RequestParam(required = false) LocalDateTime before
+            ) {
+        return ResponseEntity.ok().body(postService.getComments(postId , before));
     }
 
     @DeleteMapping("/delete/{commentId}/comments")

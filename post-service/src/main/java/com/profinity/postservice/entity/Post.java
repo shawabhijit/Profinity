@@ -24,7 +24,6 @@ public class Post {
     @Column(nullable = false)
     private UUID authorId;
 
-    @Column(columnDefinition = "TEXT")
     private String content;
 
     @OneToMany(

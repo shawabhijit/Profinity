@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: feed-service
+
+  profiles:
+    active: dev
+
+  config:
+    import: configserver:http://profinity-config-server:8888
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://profinity-eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true

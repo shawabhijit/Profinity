@@ -26,7 +26,7 @@ public class Comment {
     @Column(nullable = false)
     private UUID authorId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String content;
 
     @CreationTimestamp
