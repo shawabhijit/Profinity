@@ -32,7 +32,7 @@ public class KafkaEventProducer {
                         attachment.getUrl(),
                         attachment.getFilename(),
                         attachment.getFileSize(),
-                        attachment.getType()
+                        attachment.getType().toString()
         )).toList();
 
         PostCreatedRecord postCreatedRecord = new PostCreatedRecord(

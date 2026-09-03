@@ -40,7 +40,7 @@ public class ConnectionController {
         return ResponseEntity.ok().body(connectionService.rejectConnectionRequest(connectionId));
     }
 
-    @GetMapping("{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<List<UserResponse>> getConnections(
             @PathVariable UUID userId
     ) {

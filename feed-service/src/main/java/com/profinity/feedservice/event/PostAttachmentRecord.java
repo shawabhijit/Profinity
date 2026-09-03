@@ -1,6 +1,4 @@
-package com.profinity.postservice.event;
-
-import com.profinity.postservice.entity.enums.AttachmentType;
+package com.profinity.feedservice.event;
 
 public record PostAttachmentRecord (
         String url,
@@ -9,3 +7,4 @@ public record PostAttachmentRecord (
         String type
 ) {
 }
+

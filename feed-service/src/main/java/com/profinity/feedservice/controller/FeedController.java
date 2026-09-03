@@ -1,13 +1,11 @@
 package com.profinity.feedservice.controller;
 
+import com.profinity.feedservice.dto.FeedResponse;
 import com.profinity.feedservice.service.FeedService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,15 +23,29 @@ public class FeedController {
      * Return list of post ids
      * Client fetched full post details from post service
      * @param userId
-     * @param page
+     * @param cursor
      * @param size
      * @return List<UUID> ids;
      */
-    public ResponseEntity<List<UUID>> getFeed(
+    @GetMapping("/{userId}")
+    public ResponseEntity<FeedResponse> getFeed(
             @PathVariable UUID userId,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "10") int size
     ) {
+        return ResponseEntity.ok().body(feedService.getFeed(userId, cursor, size));
+    }
 
+
+    /**
+     * clear feed cache - useful for testing
+     * @param userId
+     * @return
+     */
+    @DeleteMapping("/{userId}/cache")
+    public ResponseEntity<FeedResponse> clearFeed(
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok().body(feedService.clearFeed(userId));
     }
 }
