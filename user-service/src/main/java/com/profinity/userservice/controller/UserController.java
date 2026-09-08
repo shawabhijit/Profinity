@@ -24,6 +24,16 @@ public class UserController {
         return ResponseEntity.ok().body(userService.getAllUsers());
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<List<UserResponse>> getUsersByIds(
+            @RequestBody List<UUID> userIds
+    ) {
+        return ResponseEntity.ok(
+                userService.getUsersByIds(userIds)
+        );
+    }
+
+
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(
             @PathVariable UUID userId) {

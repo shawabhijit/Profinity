@@ -1,11 +1,18 @@
 package com.profinity.companyservice.controller;
 
+import com.profinity.companyservice.dto.AddEmployeeRequest;
 import com.profinity.companyservice.dto.CompanyRequest;
+import com.profinity.companyservice.dto.CompanyResponse;
+import com.profinity.companyservice.entity.enums.CompanyType;
 import com.profinity.companyservice.service.CompanyService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -24,10 +31,10 @@ public class CompanyController {
      * @return
      */
     @PostMapping("/{authorId}/create")
-    public ResponseEntity<?> createCompany(
+    public ResponseEntity<CompanyResponse> createCompany(
             @PathVariable UUID authorId,
             @RequestBody CompanyRequest companyRequest) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(companyService.createCompany(authorId, companyRequest));
     }
 
     /**
@@ -38,27 +45,132 @@ public class CompanyController {
      * @return
      */
     @PutMapping("/{authorId}/update")
-    public ResponseEntity<?> updateCompany(
+    public ResponseEntity<CompanyResponse> updateCompany(
             @PathVariable UUID authorId,
             @RequestParam UUID companyId,
             @RequestBody CompanyRequest companyRequest
     ) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(companyService.updateCompany(authorId, companyId, companyRequest));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getCompany(
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies(
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok().body(companyService.getAllCompanies(userId));
+    }
+
+    @GetMapping("/industry/{industry}")
+    public ResponseEntity<List<CompanyResponse>> getAllCompaniesByIndustry(
+            @PathVariable String industry,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ResponseEntity.ok().body(companyService.getAllCompaniesByIndustry(industry, page, 10));
+    }
+
+    @GetMapping("/type/{companyType}")
+    public ResponseEntity<List<CompanyResponse>> getAllCompaniesByType(
+            @PathVariable CompanyType companyType,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ResponseEntity.ok().body(companyService.findAllCompaniesByType(companyType, page, 10));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<CompanyResponse> getCompany(
             @PathVariable UUID userId,
             @RequestParam UUID companyId
     ) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(companyService.getCompany(userId, companyId));
     }
 
     @DeleteMapping("/{authorId}/delete")
-    public ResponseEntity<?> deleteCompany(
+    public ResponseEntity<String> deleteCompany(
             @PathVariable UUID authorId,
             @RequestParam UUID companyId
     ) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(companyService.deleteCompany(authorId, companyId));
+    }
+
+    /**
+     * Follow end points start from here
+     */
+    @PostMapping("/{companyId}/follow")
+    public ResponseEntity<String> followCompany(
+            @PathVariable UUID companyId,
+            @RequestParam UUID userId
+    ) {
+        return ResponseEntity.ok().body(companyService.followCompany(companyId, userId));
+    }
+
+    @GetMapping("/{companyId}/followers")
+    public ResponseEntity<Page<Map<String, Object>>> getFollowers(
+            @PathVariable UUID companyId,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ResponseEntity.ok().body(companyService.getAllFollowers(companyId,page,20));
+    }
+
+    @DeleteMapping("/{companyId}/unfollow")
+    public ResponseEntity<String> unfollowCompany(
+            @PathVariable UUID companyId,
+            @RequestParam UUID userId
+    ) {
+        return ResponseEntity.ok().body(companyService.followCompany(companyId, userId));
+    }
+
+    /**
+     * Employee end points start from here
+     */
+
+    /**
+     * Supports adding multiple users in one go
+     * Validate user ids with user service
+     * create employee records
+     *
+     * @param companyId
+     * @param request
+     * @return
+     */
+    @PostMapping("/{companyId}/employees")
+    public ResponseEntity<String> addEmployeeToCompany(
+            @PathVariable UUID companyId,
+            @RequestBody AddEmployeeRequest request
+    ) {
+        return ResponseEntity.ok().body(companyService.addEmployeesToCompany(companyId, request));
+    }
+
+    /**
+     * found list of user ids then call user-service to get he user details
+     * return needed details from company-service
+     *
+     * @param companyId
+     * @return
+     */
+    @GetMapping("/{companyId}/employees")
+    public ResponseEntity<List<Map<String, Object>>> getAllEmployeesOfACompany(
+            @PathVariable UUID companyId,
+            @RequestParam UUID userId
+    ) {
+        return ResponseEntity.ok().body(companyService.getAllEmployees(companyId, userId));
+    }
+
+    @GetMapping("/{companyId}/employees/{userId}")
+    public ResponseEntity<?> getEmployeeOfACompany(
+            @PathVariable UUID companyId,
+            @RequestParam UUID requesterId,
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok().body(companyService.getEmployeeOfACompany(companyId, requesterId, userId));
+    }
+
+
+    @DeleteMapping("/{companyId}/employees/{requesterId}")
+    public ResponseEntity<String> deleteEmployeeFromCompany(
+            @PathVariable UUID companyId,
+            @PathVariable UUID requesterId,
+            @RequestParam UUID authorId
+    ) {
+        return ResponseEntity.ok().body(companyService.deleteEmployeeOfACompany(companyId, requesterId, authorId));
     }
 }

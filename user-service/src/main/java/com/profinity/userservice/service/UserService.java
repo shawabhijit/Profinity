@@ -10,8 +10,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,18 @@ public class UserService {
     public List<UserResponse> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream().map(UserService::userToUserResponse).toList();
+    }
+
+    public List<UserResponse> getUsersByIds(List<UUID> userIds) {
+
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return StreamSupport
+                .stream(userRepository.findAllById(userIds).spliterator(), false)
+                .map(UserService::userToUserResponse)
+                .toList();
     }
 
     public UserResponse getUserById(UUID userId) {
