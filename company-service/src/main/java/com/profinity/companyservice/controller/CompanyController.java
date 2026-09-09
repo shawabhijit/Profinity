@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,24 @@ public class CompanyController {
         return ResponseEntity.ok().body(companyService.updateCompany(authorId, companyId, companyRequest));
     }
 
+    @PatchMapping("/{authorId}/update/logo")
+    public ResponseEntity<String> updateLogoOfCompany(
+            @PathVariable UUID authorId,
+            @RequestParam UUID companyId,
+            @RequestBody MultipartFile file
+    ) {
+        return ResponseEntity.ok().body(companyService.updateLogo(authorId, companyId, file));
+    }
+
+    @PatchMapping("/{authorId}/update/banner")
+    public ResponseEntity<String> updateBannerOfCompany(
+            @PathVariable UUID authorId,
+            @RequestParam UUID companyId,
+            @RequestBody MultipartFile file
+    ) {
+        return ResponseEntity.ok().body(companyService.updateBanner(authorId, companyId, file));
+    }
+
     @GetMapping("/{userId}")
     public ResponseEntity<List<CompanyResponse>> getAllCompanies(
             @PathVariable UUID userId
@@ -76,10 +95,10 @@ public class CompanyController {
         return ResponseEntity.ok().body(companyService.findAllCompaniesByType(companyType, page, 10));
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{companyId}")
     public ResponseEntity<CompanyResponse> getCompany(
-            @PathVariable UUID userId,
-            @RequestParam UUID companyId
+            @RequestParam UUID userId,
+            @PathVariable UUID companyId
     ) {
         return ResponseEntity.ok().body(companyService.getCompany(userId, companyId));
     }
@@ -148,20 +167,12 @@ public class CompanyController {
      * @return
      */
     @GetMapping("/{companyId}/employees")
-    public ResponseEntity<List<Map<String, Object>>> getAllEmployeesOfACompany(
+    public ResponseEntity<Page<Map<String, Object>>> getAllEmployeesOfACompany(
             @PathVariable UUID companyId,
-            @RequestParam UUID userId
+            @RequestParam UUID userId,
+            @RequestParam(defaultValue = "0") int page
     ) {
-        return ResponseEntity.ok().body(companyService.getAllEmployees(companyId, userId));
-    }
-
-    @GetMapping("/{companyId}/employees/{userId}")
-    public ResponseEntity<?> getEmployeeOfACompany(
-            @PathVariable UUID companyId,
-            @RequestParam UUID requesterId,
-            @PathVariable UUID userId
-    ) {
-        return ResponseEntity.ok().body(companyService.getEmployeeOfACompany(companyId, requesterId, userId));
+        return ResponseEntity.ok().body(companyService.getAllEmployees(companyId, userId, page, 20));
     }
 
 
@@ -169,8 +180,8 @@ public class CompanyController {
     public ResponseEntity<String> deleteEmployeeFromCompany(
             @PathVariable UUID companyId,
             @PathVariable UUID requesterId,
-            @RequestParam UUID authorId
+            @RequestParam UUID userId
     ) {
-        return ResponseEntity.ok().body(companyService.deleteEmployeeOfACompany(companyId, requesterId, authorId));
+        return ResponseEntity.ok().body(companyService.deleteEmployeeOfACompany(companyId, requesterId, userId));
     }
 }

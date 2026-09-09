@@ -5,6 +5,7 @@ import com.profinity.companyservice.dto.AddEmployeeRequest;
 import com.profinity.companyservice.dto.CompanyRequest;
 import com.profinity.companyservice.dto.CompanyResponse;
 import com.profinity.companyservice.entity.Company;
+import com.profinity.companyservice.entity.Employee;
 import com.profinity.companyservice.entity.Follower;
 import com.profinity.companyservice.entity.enums.CompanyType;
 import com.profinity.companyservice.exceptions.CompanyException;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -36,6 +38,8 @@ public class CompanyService {
 
     private final CompanyEventProducers companyEventProducers;
     private final UserServiceClient userServiceClient;
+
+    private final S3Service s3Service;
 
 
     public CompanyResponse createCompany(UUID authorId , CompanyRequest companyRequest) {
@@ -83,6 +87,37 @@ public class CompanyService {
         return mapToCompanyResponse(company);
     }
 
+    @Transactional
+    public String updateLogo(UUID authorId, UUID companyId, MultipartFile file) {
+        Company company = companyRepository.findById(companyId).orElseThrow(
+                () -> new CompanyException("Company not fount this provided ID: " + companyId)
+        );
+
+        if (!company.getAdministratorId().equals(authorId)) {
+            throw new CompanyException("Permission denied to update this company as you are not a Admin");
+        }
+
+        String url = s3Service.uploadFile(file, "company_logo/" + authorId);
+
+        company.setLogo(url);
+        return "Logo Updated Successfully.";
+    }
+
+    public String updateBanner(UUID authorId, UUID companyId, MultipartFile file) {
+        Company company = companyRepository.findById(companyId).orElseThrow(
+                () -> new CompanyException("Company not fount this provided ID: " + companyId)
+        );
+
+        if (!company.getAdministratorId().equals(authorId)) {
+            throw new CompanyException("Permission denied to update this company as you are not a Admin");
+        }
+
+        String url = s3Service.uploadFile(file, "company_banner/" + authorId);
+
+        company.setBanner(url);
+        return "Banner Updated Successfully.";
+    }
+
     public List<CompanyResponse> getAllCompanies(UUID userId) {
         List<Company> companies = companyRepository.findAll();
         return companies.stream().map(this::mapToCompanyResponse).collect(Collectors.toList());
@@ -120,15 +155,18 @@ public class CompanyService {
      *
      */
 
+    @Transactional
     public String followCompany(UUID companyId , UUID userId) {
-        if(!companyRepository.existsById(companyId)){
-            throw new CompanyException("Company not fount this provided ID: " + companyId);
-        }
+        Company company = companyRepository.findById(companyId).orElseThrow(
+                () -> new CompanyException("Company not fount this provided ID: " + companyId)
+        );
 
         Optional<Follower> follower = followerRepository.findByFollowerIdAndCompanyId(userId, companyId);
 
         if(follower.isPresent()) {
             followerRepository.delete(follower.get());
+            company.setFollowersCount(company.getFollowersCount() - 1);
+
             return "Company Unfollowed successfully.";
         }
         else {
@@ -138,6 +176,7 @@ public class CompanyService {
             newFollower.setFollowedAt(LocalDateTime.now());
 
             followerRepository.save(newFollower);
+            company.setFollowersCount(company.getFollowersCount() + 1);
 
             return "Company followed successfully.";
         }
@@ -172,20 +211,74 @@ public class CompanyService {
      * Employee end points start from here
      */
 
+    @Transactional
     public String addEmployeesToCompany(UUID companyId, AddEmployeeRequest request) {
-        return null;
+        Company company = companyRepository.findById(companyId).orElseThrow(
+                () -> new CompanyException("Company not fount this provided ID: " + companyId)
+        );
+
+        int count = 0;
+        List<Employee> employees = new ArrayList<>();
+
+        for (UUID userId : request.getUserIds()) {
+            if(employeeRepository.existsById(userId)) {
+                throw new CompanyException("Employee with this ID "+userId+" already exists in this company");
+            }
+            Employee employee = new Employee();
+            employee.setCompanyId(companyId);
+            employee.setUserId(userId);
+            employee.setActive(true);
+            employee.setCreatedAt(LocalDateTime.now());
+
+            count++;
+            employees.add(employee);
+        }
+
+        employeeRepository.saveAll(employees);
+        company.setEmployeesCount(company.getEmployeesCount() + count);
+
+        return "Employees added successfully";
     }
 
-    public List<Map<String, Object>> getAllEmployees(UUID userId, UUID companyId) {
-        return null;
+    public Page<Map<String, Object>> getAllEmployees(UUID userId, UUID companyId , int page, int size) {
+        Company company = companyRepository.findById(companyId).orElseThrow(
+                () -> new CompanyException("Company not fount this provided ID: " + companyId)
+        );
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Employee> employees = employeeRepository.findByCompanyId(company.getId(), pageable);
+
+        List<UUID> userIds = employees
+                .stream()
+                .map(Employee::getUserId)
+                .toList();
+
+        List<Map<String, Object>> users =
+                userServiceClient.getUsers(userIds);
+
+        return new PageImpl<>(
+                users,
+                pageable,
+                employees.getTotalElements()
+        );
     }
 
-    public Map<String, Object> getEmployeeOfACompany(UUID companyId, UUID requesterId, UUID employeeId) {
-        return null;
-    }
+    @Transactional
+    public String deleteEmployeeOfACompany(UUID companyId, UUID requesterId, UUID userId) {
+        if(!companyRepository.existsByIdAndAdministratorId(companyId, requesterId)) {
+            throw new CompanyException("Company not fount with provided information's.");
+        }
 
-    public String deleteEmployeeOfACompany(UUID companyId, UUID requesterId, UUID authorId) {
-        return null;
+        Employee employee = employeeRepository.findByUserIdAndCompanyId(userId,companyId);
+
+        if (employee == null) {
+            throw new CompanyException("Employee is not found with provided information's.");
+        }
+
+        employee.setActive(false);
+
+        return "Employee deleted successfully.";
     }
 
     private CompanyResponse mapToCompanyResponse(Company company) {
